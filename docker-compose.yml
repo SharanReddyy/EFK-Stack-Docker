@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx-logs:/var/log/nginx
+    ports:
+      - "80:80"
+  
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.2
+    environment:
+      - discovery.type=single-node
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.15.2
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./nginx-logs:/var/log/nginx
+    user: root
+    command: ["--strict.perms=false"]
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.15.2
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
